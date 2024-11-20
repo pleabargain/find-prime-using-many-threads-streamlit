@@ -5,7 +5,8 @@ This experiment was created to test the performance of a multi-agent system for 
 
 I found the results surprising. I expected the multi-agent system to perform better than the single-threaded approach, but the results show that the single-threaded approach is faster. I expected the multi-agent system to find more primes, but the results show that the single-threaded approach finds primes faster. Why is this?
 
-
+here is the code for the experiment:
+https://github.com/pleabargain/find-prime-using-many-threads-streamlit
 
 
 A Streamlit web application that implements a multi-agent approach to finding prime numbers within a specified range.
