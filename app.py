@@ -25,12 +25,13 @@ class RunHistory:
         self.max_entries = max_entries
         self.history = []
     
-    def add_run(self, num_agents, range_limit, elapsed_time):
+    def add_run(self, num_agents, range_limit, elapsed_time, num_primes):
         run_data = {
             'timestamp': datetime.now(),
             'num_agents': num_agents,
             'range_limit': range_limit,
-            'elapsed_time': elapsed_time
+            'elapsed_time': elapsed_time,
+            'num_primes': num_primes
         }
         self.history.append(run_data)
         if len(self.history) > self.max_entries:
@@ -42,7 +43,7 @@ class RunHistory:
         
         df = pd.DataFrame(self.history)
         df['elapsed_time'] = df['elapsed_time'].round(2)
-        return df[['num_agents', 'range_limit', 'elapsed_time']]
+        return df[['num_agents', 'range_limit', 'num_primes', 'elapsed_time']]
 
 class AoTPrimeFinder:
     def __init__(self, range_limit: int, num_agents: int = 10):
@@ -159,6 +160,7 @@ def main():
             column_config={
                 "num_agents": "Number of Agents",
                 "range_limit": "Maximum Number",
+                "num_primes": "Primes Found",
                 "elapsed_time": "Elapsed Time (s)"
             },
             hide_index=True
@@ -205,7 +207,8 @@ def main():
                 st.session_state.run_history.add_run(
                     num_agents,
                     range_limit,
-                    final_time
+                    final_time,
+                    len(prime_finder.primes)
                 )
 
             st.success(f"Prime finding complete in {final_time:.2f} seconds!")
