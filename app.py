@@ -26,6 +26,15 @@ class RunHistory:
         self.history = []
     
     def add_run(self, num_agents, range_limit, elapsed_time, num_primes):
+        """
+        Add a new run to the history
+        
+        Parameters:
+        - num_agents: Number of agents used
+        - range_limit: Maximum number searched
+        - elapsed_time: Time taken for the search
+        - num_primes: Number of primes found
+        """
         run_data = {
             'timestamp': datetime.now(),
             'num_agents': num_agents,
@@ -43,6 +52,7 @@ class RunHistory:
         
         df = pd.DataFrame(self.history)
         df['elapsed_time'] = df['elapsed_time'].round(2)
+        # Ensure column order and names
         return df[['num_agents', 'range_limit', 'num_primes', 'elapsed_time']]
 
 class AoTPrimeFinder:
@@ -202,13 +212,14 @@ def main():
                 
                 search_thread.join()
                 final_time = perf_counter() - start_time
+                found_primes = sorted(prime_finder.primes)
 
-                # Add run to history
+                # Add run to history with correct number of arguments
                 st.session_state.run_history.add_run(
                     num_agents,
                     range_limit,
                     final_time,
-                    len(prime_finder.primes)
+                    len(found_primes)  # Number of primes found
                 )
 
             st.success(f"Prime finding complete in {final_time:.2f} seconds!")
