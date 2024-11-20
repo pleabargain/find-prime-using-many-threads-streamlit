@@ -154,104 +154,153 @@ def save_results(primes, num_agents, range_limit):
 def main():
     st.title("Agent-oriented Prime Number Finder")
     
-    # Initialize run history in session state if it doesn't exist
-    if 'run_history' not in st.session_state:
-        st.session_state.run_history = RunHistory()
-
-    # Clear console before each run
-    clear_console()
+    # Create tabs
+    main_tab, help_tab = st.tabs(["Main", "Help"])
     
-    # Show run history at the top
-    if st.session_state.run_history.history:
-        st.subheader("Previous Runs")
-        df = st.session_state.run_history.get_dataframe()
-        st.dataframe(
-            df,
-            column_config={
-                "num_agents": "Number of Agents",
-                "range_limit": "Maximum Number",
-                "num_primes": "Primes Found",
-                "elapsed_time": "Elapsed Time (s)"
-            },
-            hide_index=True
-        )
+    with main_tab:
+        # Initialize run history in session state if it doesn't exist
+        if 'run_history' not in st.session_state:
+            st.session_state.run_history = RunHistory()
 
-    st.write("""
-    This application uses multiple agents to find prime numbers within a specified range.
-    Each agent starts at a random position and explores the number space independently.
-    Miller-Rabin primality test is used for efficient prime checking. What I find fascinating that
-    using multiple agents to search for primes is slower than a single threaded approach! I added number of primes found to the UI.
-    """)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        num_agents = st.slider("Number of Agents", min_value=1, max_value=100, value=10)
-    with col2:
-        range_limit = st.number_input("Maximum Number to Search", min_value=10, max_value=1000000, value=1000)
-
-    save_output = st.checkbox("Save results to file", value=False)
-    
-    if st.button("Find Primes"):
-        start_time = perf_counter()
-        timer_placeholder = st.empty()
-        progress_bar = st.progress(0)
-        status_container = st.empty()
-        message_container = st.empty()
+        # Clear console before each run
+        clear_console()
         
-        prime_finder = AoTPrimeFinder(range_limit, num_agents)
+        # Show run history at the top
+        if st.session_state.run_history.history:
+            st.subheader("Previous Runs")
+            df = st.session_state.run_history.get_dataframe()
+            st.dataframe(
+                df,
+                column_config={
+                    "num_agents": "Number of Agents",
+                    "range_limit": "Maximum Number",
+                    "num_primes": "Primes Found",
+                    "elapsed_time": "Elapsed Time (s)"
+                },
+                hide_index=True
+            )
+
+        st.write("""
+        This application uses multiple agents to find prime numbers within a specified range.
+        Each agent starts at a random position and explores the number space independently.
+        Miller-Rabin primality test is used for efficient prime checking.
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            num_agents = st.slider("Number of Agents", min_value=1, max_value=100, value=10)
+        with col2:
+            range_limit = st.number_input("Maximum Number to Search", min_value=10, max_value=1000000, value=1000)
+
+        save_output = st.checkbox("Save results to file", value=False)
         
-        try:
-            with st.spinner('Finding prime numbers...'):
-                search_thread = threading.Thread(target=prime_finder.find_primes)
-                search_thread.start()
-                
-                while search_thread.is_alive():
-                    elapsed_time = perf_counter() - start_time
-                    timer_placeholder.text(f"Elapsed Time: {elapsed_time:.2f} seconds")
-                    time.sleep(0.1)
-                
-                search_thread.join()
-                final_time = perf_counter() - start_time
-                found_primes = sorted(prime_finder.primes)
-
-                # Add run to history with correct number of arguments
-                st.session_state.run_history.add_run(
-                    num_agents,
-                    range_limit,
-                    final_time,
-                    len(found_primes)  # Number of primes found
-                )
-
-            st.success(f"Prime finding complete in {final_time:.2f} seconds!")
-            found_primes = sorted(prime_finder.primes)
-            st.write(f"Found {len(found_primes)} prime numbers:")
+        if st.button("Find Primes"):
+            start_time = perf_counter()
+            timer_placeholder = st.empty()
+            progress_bar = st.progress(0)
+            status_container = st.empty()
+            message_container = st.empty()
             
-            if prime_finder.messages:
-                with st.expander("Show agent activity log"):
-                    for msg in prime_finder.messages:
-                        st.text(msg)
+            prime_finder = AoTPrimeFinder(range_limit, num_agents)
+            
+            try:
+                with st.spinner('Finding prime numbers...'):
+                    search_thread = threading.Thread(target=prime_finder.find_primes)
+                    search_thread.start()
+                    
+                    while search_thread.is_alive():
+                        elapsed_time = perf_counter() - start_time
+                        timer_placeholder.text(f"Elapsed Time: {elapsed_time:.2f} seconds")
+                        time.sleep(0.1)
+                    
+                    search_thread.join()
+                    final_time = perf_counter() - start_time
+                    found_primes = sorted(prime_finder.primes)
 
-            if save_output:
-                filename = save_results(found_primes, num_agents, range_limit)
-                st.success(f"Results saved to {filename}")
+                    # Add run to history with correct number of arguments
+                    st.session_state.run_history.add_run(
+                        num_agents,
+                        range_limit,
+                        final_time,
+                        len(found_primes)  # Number of primes found
+                    )
 
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("First 10 primes:", found_primes[:10])
-            with col2:
-                st.write("Last 10 primes:", found_primes[-10:])
+                st.success(f"Prime finding complete in {final_time:.2f} seconds!")
+                found_primes = sorted(prime_finder.primes)
+                st.write(f"Found {len(found_primes)} prime numbers:")
+                
+                if prime_finder.messages:
+                    with st.expander("Show agent activity log"):
+                        for msg in prime_finder.messages:
+                            st.text(msg)
 
-            with st.expander("Show all prime numbers"):
-                st.write(found_primes)
+                if save_output:
+                    filename = save_results(found_primes, num_agents, range_limit)
+                    st.success(f"Results saved to {filename}")
 
-            if found_primes:
-                st.subheader("Distribution of Found Primes")
-                hist_data = np.histogram(found_primes, bins=min(20, len(found_primes)))
-                st.bar_chart(hist_data[0])
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write("First 10 primes:", found_primes[:10])
+                with col2:
+                    st.write("Last 10 primes:", found_primes[-10:])
 
-        except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
-            logging.error(f"Application error: {str(e)}")
+                with st.expander("Show all prime numbers"):
+                    st.write(found_primes)
+
+                if found_primes:
+                    st.subheader("Distribution of Found Primes")
+                    hist_data = np.histogram(found_primes, bins=min(20, len(found_primes)))
+                    st.bar_chart(hist_data[0])
+
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+                logging.error(f"Application error: {str(e)}")
+
+    with help_tab:
+        st.header("Understanding Thread Performance")
+        
+        st.markdown("""
+        ### Why More Threads Can Slow Down Performance
+        
+        Adding more threads can slow down a function for several key reasons:
+
+        1. **Overhead**: Creating and managing threads requires system resources. Thread creation, 
+           context switching, and synchronization all have associated costs.
+
+        2. **Contention**: Multiple threads competing for shared resources (memory, locks, CPU cache) 
+           can lead to waiting and serialization.
+
+        3. **Cache thrashing**: Threads running on different CPU cores may invalidate each other's 
+           cache lines when accessing shared data, reducing cache efficiency.
+
+        4. **Memory bandwidth saturation**: If the task is memory-bound rather than CPU-bound, 
+           additional threads may overwhelm available memory bandwidth.
+
+        5. **Synchronization costs**: More threads often require more complex synchronization, 
+           adding overhead through locks, atomic operations, and barriers.
+
+        ### Optimal Thread Count Factors
+        
+        The optimal number of threads typically depends on:
+        - Available CPU cores
+        - Memory bandwidth
+        - Task characteristics (CPU vs I/O bound)
+        - Data sharing requirements
+        - System architecture
+        """)
+        
+        # Add a visual separator
+        st.divider()
+        
+        # Add additional tips
+        st.markdown("""
+        ### Tips for This Application
+        
+        - Start with a number of agents close to your CPU core count
+        - Experiment with different agent counts to find the optimal performance
+        - Consider the range size when selecting agent count
+        - Monitor system resource usage during execution
+        """)
 
 if __name__ == "__main__":
     main()
