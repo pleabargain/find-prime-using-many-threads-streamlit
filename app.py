@@ -167,7 +167,8 @@ def main():
     st.write("""
     This application uses multiple agents to find prime numbers within a specified range.
     Each agent starts at a random position and explores the number space independently.
-    Miller-Rabin primality test is used for efficient prime checking.
+    Miller-Rabin primality test is used for efficient prime checking. What I find fascinating that
+    using multiple agents to search for primes is slower than a single threaded approach!
     """)
 
     col1, col2 = st.columns(2)
