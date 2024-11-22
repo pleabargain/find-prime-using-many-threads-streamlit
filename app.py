@@ -12,7 +12,7 @@ import pandas as pd
 
 
 # set random seed 
-#random.seed(10)
+random.seed(10)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
